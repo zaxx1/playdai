@@ -229,8 +229,8 @@ class DDAI:
                         continue
                     return self.print_message(email, proxy, Fore.YELLOW, f"Refreshing Access Token Failed: {Fore.RED+Style.BRIGHT}{str(e)}")
     
-    async def user_info(self, email: str, proxy=None, retries=5):
-        url = f"{self.BASE_API}/infor"
+    async def refresh_statistic(self, email: str, proxy=None, retries=5):
+        url = f"{self.BASE_API}/statistic"
         headers = {
             **self.DASHBOARD_HEADERS,
             "Authorization": f"Bearer {self.access_tokens[email]}"
@@ -246,7 +246,7 @@ class DDAI:
                     if attempt < retries - 1:
                         await asyncio.sleep(5)
                         continue
-                    return self.print_message(email, proxy, Fore.YELLOW, f"GET User Data Failed: {Fore.RED+Style.BRIGHT}{str(e)}")
+                    return self.print_message(email, proxy, Fore.YELLOW, f"Refresh Stats Failed: {Fore.RED+Style.BRIGHT}{str(e)}")
     
     async def mission_lists(self, email: str, proxy=None, retries=5):
         url = f"{self.BASE_API}/missions"
@@ -368,17 +368,26 @@ class DDAI:
 
                 self.print_message(email, proxy, Fore.GREEN, "Refreshing Access Token Success")
 
-    async def process_user_info(self, email: str, use_proxy: bool):
+    async def process_refresh_statistic(self, email: str, use_proxy: bool):
         while True:
             proxy = self.get_next_proxy_for_account(email) if use_proxy else None
 
-            total_requests = "N/A"
-            user = await self.user_info(email, proxy)
-            if user:
-                total_requests = user.get("data", {}).get("requests", 0)
-                self.print_message(email, proxy, Fore.GREEN, "Total Requests "
-                    f"{Fore.WHITE + Style.BRIGHT}{total_requests}{Style.RESET_ALL}"
-                )
+            requests_today = "N/A"
+            refresh_stats = await self.refresh_statistic(email, proxy)
+            if refresh_stats:
+                stat_lists = refresh_stats.get("data", {}).get("statistics", [])
+
+                if stat_lists:
+                    requests_today = stat_lists[0].get("requests", 0)
+                    self.print_message(email, proxy, Fore.GREEN, "Refresh Stats Success "
+                        f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
+                        f"{Fore.CYAN + Style.BRIGHT} Total Requests Today: {Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT}{requests_today}{Style.RESET_ALL}"
+                    )
+                else:
+                    self.print_message(email, proxy, Fore.GREEN, "Refresh Stats Success, "
+                        f"{Fore.YELLOW + Style.BRIGHT}But No Available Data{Style.RESET_ALL}"
+                    )
 
             await asyncio.sleep(10 * 60)
 
@@ -428,13 +437,19 @@ class DDAI:
                 await asyncio.sleep(5)
                 continue
 
-            self.print_message(email, proxy, Fore.GREEN, "Perform Onchain Trigger Success")
-
-            return True
+            return trigger
         
     async def process_model_response(self, email: str, use_proxy: bool):
         is_triggered = await self.process_onchain_trigger(email, use_proxy)
         if is_triggered:
+            proxy = self.get_next_proxy_for_account(email) if use_proxy else None
+            requests_total = is_triggered.get("data", {}).get("requestsTotal", 0)
+
+            self.print_message(email, proxy, Fore.GREEN, "Perform Onchain Trigger Success "
+                f"{Fore.WHITE + Style.BRIGHT}-{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} Total Requests: {Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT}{requests_total}{Style.RESET_ALL}"
+            )
 
             while True:
                 proxy = self.get_next_proxy_for_account(email) if use_proxy else None
@@ -454,7 +469,7 @@ class DDAI:
         if self.access_tokens[email] and self.refresh_tokens[email]:
             tasks = [
                 asyncio.create_task(self.process_auth_refresh(email, password, use_proxy)),
-                asyncio.create_task(self.process_user_info(email, use_proxy)),
+                asyncio.create_task(self.process_refresh_statistic(email, use_proxy)),
                 asyncio.create_task(self.process_user_missions(email, use_proxy)),
                 asyncio.create_task(self.process_model_response(email, use_proxy))
             ]
