@@ -279,11 +279,6 @@ class DDAI:
             try:
                 async with ClientSession(connector=connector, timeout=ClientTimeout(total=60)) as session:
                     async with session.post(url=url, headers=headers) as response:
-                        if response.status == 500:
-                            return self.print_message(email, proxy, Fore.WHITE, f"Mission {title}"
-                                f"{Fore.RED + Style.BRIGHT} Not Completed: {Style.RESET_ALL}"
-                                f"{Fore.YELLOW + Style.BRIGHT}Not Eligible{Style.RESET_ALL}"
-                            )
                         response.raise_for_status()
                         return await response.json()
             except (Exception, ClientResponseError) as e:
@@ -407,21 +402,32 @@ class DDAI:
                             mission_id = mission.get("_id")
                             title = mission.get("title")
                             reward = mission.get("rewards", {}).get("requests", 0)
+                            type = mission.get("type")
                             status = mission.get("status")
 
-
-                            if status == "PENDING":
-                                claim = await self.complete_missions(email, mission_id, title, proxy)
-                                if claim and claim.get("data", {}).get("claimed"):
-                                    self.print_message(email, proxy, Fore.WHITE, f"Mission {title}"
-                                        f"{Fore.GREEN + Style.BRIGHT} Is Completed {Style.RESET_ALL}"
-                                        f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
-                                        f"{Fore.CYAN + Style.BRIGHT} Reward: {Style.RESET_ALL}"
-                                        f"{Fore.WHITE + Style.BRIGHT}{reward} Requests{Style.RESET_ALL}"
-                                    )
-
+                            if type == 3:
+                                if status == "COMPLETED":
+                                    claim = await self.complete_missions(email, mission_id, title, proxy)
+                                    if claim and claim.get("data", {}).get("claimed"):
+                                        self.print_message(email, proxy, Fore.WHITE, f"Mission {title}"
+                                            f"{Fore.GREEN + Style.BRIGHT} Is Completed {Style.RESET_ALL}"
+                                            f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
+                                            f"{Fore.CYAN + Style.BRIGHT} Reward: {Style.RESET_ALL}"
+                                            f"{Fore.WHITE + Style.BRIGHT}{reward} Requests{Style.RESET_ALL}"
+                                        )
+                                
                             else:
-                                completed = True
+                                if status == "PENDING":
+                                    claim = await self.complete_missions(email, mission_id, title, proxy)
+                                    if claim and claim.get("data", {}).get("claimed"):
+                                        self.print_message(email, proxy, Fore.WHITE, f"Mission {title}"
+                                            f"{Fore.GREEN + Style.BRIGHT} Is Completed {Style.RESET_ALL}"
+                                            f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
+                                            f"{Fore.CYAN + Style.BRIGHT} Reward: {Style.RESET_ALL}"
+                                            f"{Fore.WHITE + Style.BRIGHT}{reward} Requests{Style.RESET_ALL}"
+                                        )
+                        else:
+                            completed = True
 
                 if completed:
                     self.print_message(email, proxy, Fore.GREEN, "All Available Mission Is Completed")
@@ -469,7 +475,7 @@ class DDAI:
         if self.access_tokens[email] and self.refresh_tokens[email]:
             tasks = [
                 asyncio.create_task(self.process_auth_refresh(email, password, use_proxy)),
-                asyncio.create_task(self.process_refresh_statistic(email, use_proxy)),
+                # asyncio.create_task(self.process_refresh_statistic(email, use_proxy)),
                 asyncio.create_task(self.process_user_missions(email, use_proxy)),
                 asyncio.create_task(self.process_model_response(email, use_proxy))
             ]
