@@ -446,8 +446,8 @@ class DDAI:
             requests_total = is_triggered.get("data", {}).get("requestsTotal", 0)
 
             self.print_message(email, proxy, Fore.GREEN, "Perform Onchain Trigger Success "
-                f"{Fore.WHITE + Style.BRIGHT}-{Style.RESET_ALL}"
-                f"{Fore.WHITE + Style.BRIGHT} Total Requests: {Style.RESET_ALL}"
+                f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
+                f"{Fore.CYAN + Style.BRIGHT} Total Requests: {Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT}{requests_total}{Style.RESET_ALL}"
             )
 
