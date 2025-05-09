@@ -135,10 +135,9 @@ class DDAI:
         self.proxy_index = (self.proxy_index + 1) % len(self.proxies)
         return proxy
             
-    def generate_app_id(self):
-        prefix = "67"
-        app_id = prefix + uuid.uuid4().hex[len(prefix):]
-        return app_id
+    def biner_to_desimal(self, troughput: str):
+        desimal = int(troughput, 2)
+        return desimal
     
     def mask_account(self, account):
         if "@" in account:
@@ -460,12 +459,14 @@ class DDAI:
             while True:
                 proxy = self.get_next_proxy_for_account(email) if use_proxy else None
 
-                throughput = "N/A"
+                formatted_throughput = "N/A"
                 model = await self.model_response(email, proxy)
                 if model:
                     throughput = model.get("data", {}).get("throughput", 0)
+                    formatted_throughput = self.biner_to_desimal(throughput)
+
                     self.print_message(email, proxy, Fore.GREEN, "Throughput "
-                        f"{Fore.WHITE + Style.BRIGHT}{throughput}{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT}{formatted_throughput}%{Style.RESET_ALL}"
                     )
 
                 await asyncio.sleep(60)
