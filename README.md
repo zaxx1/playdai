@@ -2,7 +2,7 @@
 DDAI Network BOT
 
 - Register Here : [DDAI Network](https://app.ddai.network/register?ref=TUEPDwXT)
-- Use Code : TUEPDwXT
+- Use Code `TUEPDwXT`
 
 ## Features
 
@@ -35,16 +35,18 @@ DDAI Network BOT
 
 ## Configuration
 
-- **accounts.json:** You will find the file `accounts.json` inside the project directory. Make sure `accounts.json` contains data that matches the format expected by the script. Here are examples of file formats:
+- **tokens.json:** You will find the file `tokens.json` inside the project directory. Make sure `tokens.json` contains data that matches the format expected by the script. Here are examples of file formats:
   ```json
     [
         {
-            "Email": "your_email_address_1",
-            "Password": "your_password_1"
+            "userId": "your_user_id_1",
+            "accessToken": "your_access_token_1",
+            "refreshtoken": "your_refresh_token_1"
         },
         {
-            "Email": "your_email_address_2",
-            "Password": "your_password_2"
+            "userId": "your_user_id_2",
+            "accessToken": "your_access_token_2",
+            "refreshtoken": "your_refresh_token_2"
         }
     ]
   ```
